@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Binary Tree Problems – C++ + Visualizer</title>
+<style>
+:root{--bg:#f7f7f4;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--bd:#dedbd2;--ac:#2b59c3;--ok:#1f8a4c;--bad:#c53030;--hl:#f2b01e;--code:#f1efe8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181a;--card:#222427;--tx:#ececE8;--mu:#9a9a94;--bd:#37393d;--ac:#7aa2ff;--ok:#4cc380;--bad:#ff7b7b;--hl:#f2b01e;--code:#1a1b1d}}
+:root[data-theme="dark"]{--bg:#17181a;--card:#222427;--tx:#ececE8;--mu:#9a9a94;--bd:#37393d;--ac:#7aa2ff;--ok:#4cc380;--bad:#ff7b7b;--hl:#f2b01e;--code:#1a1b1d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:var(--mu);margin:0 0 14px;font-size:13px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+.tab{flex:none;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:6px 11px;border-radius:999px;cursor:pointer;font-size:13px}
+.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+h2{font-size:16px;margin:0 0 4px}.cx{color:var(--mu);font-size:12px;margin-bottom:8px}
+label{font-size:12px;color:var(--mu);display:block;margin:6px 0 2px}
+input[type=text],input[type=number]{width:100%;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:13px ui-monospace,Menlo,monospace}
+input[type=number]{width:80px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+button{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:13px}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button:disabled{opacity:.4;cursor:default}
+.svgbox{overflow-x:auto;border:1px dashed var(--bd);border-radius:8px;margin-top:8px;background:var(--bg)}
+svg text{font-family:ui-monospace,Menlo,monospace}
+.msg{min-height:44px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:13px;border-left:3px solid var(--ac)}
+.res{margin-top:8px;font-weight:600;font-size:14px}
+pre{margin:0;background:var(--code);padding:12px;border-radius:8px;overflow-x:auto;font:12.5px/1.55 ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--bd)}
+.lg{display:flex;gap:12px;font-size:12px;color:var(--mu);margin-top:6px;flex-wrap:wrap}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+</style></head><body><div class="wrap">
+<h1>🌳 Binary Tree – 9 Problems</h1>
+<p class="sub">LeetCode-style C++ (only the core function) + step-by-step visualizer. Edit the tree and press Next / Play.</p>
+<div class="tabs" id="tabs"></div>
+<div class="grid">
+<div>
+ <div class="card">
+  <h2 id="ttl"></h2><div class="cx" id="cx"></div>
+  <label>Tree A (level-order, use <b>null</b> for gaps)</label>
+  <input type="text" id="ta" value="6,2,8,0,4,7,9,null,null,3,5">
+  <div class="row" id="pre"></div>
+  <div id="extra"></div>
+  <div class="row"><button class="p" id="load">Load / Reset</button><button id="prev">◀ Prev</button><button id="next">Next ▶</button><button id="play">▶ Play</button></div>
+  <div class="svgbox" id="boxA"></div>
+  <div class="svgbox" id="boxB" style="display:none"></div>
+  <div class="lg"><span><i style="background:var(--hl)"></i>current</span><span><i style="background:var(--ok)"></i>good / leaf / match</span><span><i style="background:var(--bad)"></i>problem / mismatch</span></div>
+  <div class="msg" id="msg"></div><div class="res" id="res"></div>
+ </div>
+</div>
+<div class="card"><div class="row" style="margin:0 0 8px;justify-content:space-between"><h2>C++ Solution</h2><button id="cp">Copy</button></div><pre id="code"></pre></div>
+</div></div>
+<script>
+const NODE="struct TreeNode {\n    int val;\n    TreeNode *left, *right;\n    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}\n};\n\n";
+const PR=[
+{t:"1. Count nodes in a Binary Tree",c:"Time O(n) · Space O(h)",code:`int countNodes(TreeNode* root) {
+    if (!root) return 0;
+    return 1 + countNodes(root->left)
+             + countNodes(root->right);
+}`},
+{t:"2. Count leaf nodes",c:"Time O(n) · Space O(h)",code:`int countLeaves(TreeNode* root) {
+    if (!root) return 0;
+    if (!root->left && !root->right) return 1;
+    return countLeaves(root->left)
+         + countLeaves(root->right);
+}`},
+{t:"3. Count internal nodes",c:"Time O(n) · Space O(h)",code:`int countInternal(TreeNode* root) {
+    if (!root || (!root->left && !root->right))
+        return 0;                       // null or leaf
+    return 1 + countInternal(root->left)
+             + countInternal(root->right);
+}`},
+{t:"4. Height of a Binary Tree",c:"Height counted in nodes · Time O(n) · Space O(h)",code:`int height(TreeNode* root) {
+    if (!root) return 0;
+    return 1 + max(height(root->left),
+                   height(root->right));
+}`},
+{t:"5. Diameter of a Binary Tree",c:"Longest path (in edges) between any two nodes · Time O(n)",code:`class Solution {
+    int best = 0;
+    int dfs(TreeNode* n) {
+        if (!n) return 0;
+        int l = dfs(n->left);
+        int r = dfs(n->right);
+        best = max(best, l + r);   // path through n
+        return 1 + max(l, r);
+    }
+public:
+    int diameterOfBinaryTree(TreeNode* root) {
+        best = 0;
+        dfs(root);
+        return best;
+    }
+};`},
+{t:"6. Lowest Common Ancestor in a BST",c:"Uses BST property · Time O(h) · Space O(1)",code:`TreeNode* lowestCommonAncestor(TreeNode* root,
+                               TreeNode* p, TreeNode* q) {
+    while (root) {
+        if (p->val < root->val && q->val < root->val)
+            root = root->left;
+        else if (p->val > root->val && q->val > root->val)
+            root = root->right;
+        else
+            return root;           // split point
+    }
+    return nullptr;
+}`},
+{t:"7. Check if Binary Tree is Balanced",c:"|h(left) − h(right)| ≤ 1 at every node · Time O(n)",code:`class Solution {
+    int check(TreeNode* n) {       // -1 => unbalanced
+        if (!n) return 0;
+        int l = check(n->left);
+        if (l == -1) return -1;
+        int r = check(n->right);
+        if (r == -1) return -1;
+        if (abs(l - r) > 1) return -1;
+        return 1 + max(l, r);
+    }
+public:
+    bool isBalanced(TreeNode* root) {
+        return check(root) != -1;
+    }
+};`},
+{t:"8. Check if two trees are identical",c:"Same shape and same values · Time O(min(n,m))",code:`bool isSameTree(TreeNode* p, TreeNode* q) {
+    if (!p && !q) return true;
+    if (!p || !q) return false;
+    if (p->val != q->val) return false;
+    return isSameTree(p->left,  q->left)
+        && isSameTree(p->right, q->right);
+}`},
+{t:"9. Symmetric tree (mirror image)",c:"Left subtree mirrors right subtree · Time O(n)",code:`class Solution {
+    bool mirror(TreeNode* a, TreeNode* b) {
+        if (!a && !b) return true;
+        if (!a || !b) return false;
+        return a->val == b->val
+            && mirror(a->left,  b->right)
+            && mirror(a->right, b->left);
+    }
+public:
+    bool isSymmetric(TreeNode* root) {
+        return !root || mirror(root->left, root->right);
+    }
+};`}];
+const PRE={
+ bst:["BST","6,2,8,0,4,7,9,null,null,3,5"],
+ bal:["Balanced","1,2,3,4,5,6,7"],
+ skew:["Skewed","1,2,null,3,null,4"],
+ sym:["Symmetric","1,2,2,3,4,4,3"],
+ asym:["Not symmetric","1,2,2,null,3,null,3"],
+ trap:["Subtrees OK, root not","1,2,3,4,5,null,null,8"]};
+let P=0,A=null,B=null,steps=[],si=0,timer=null;
+const $=id=>document.getElementById(id);
+function build(s,pf){
+ const tk=s.split(",").map(x=>x.trim()).filter(x=>x!=="");
+ if(!tk.length||/^(null|n)$/i.test(tk[0]))return {root:null,pf,nodes:[]};
+ const nodes=[];const mk=(v,i)=>{const n={id:pf+nodes.length,val:+v,l:null,r:null};nodes.push(n);return n};
+ const root=mk(tk[0]);const q=[root];let i=1;
+ while(q.length&&i<tk.length){const n=q.shift();
+  if(i<tk.length&&!/^(null|n)$/i.test(tk[i])){n.l=mk(tk[i]);q.push(n.l)}i++;
+  if(i<tk.length&&!/^(null|n)$/i.test(tk[i])){n.r=mk(tk[i]);q.push(n.r)}i++;}
+ let x=0;(function go(n,d){if(!n)return;go(n.l,d+1);n.x=x++;n.d=d;go(n.r,d+1)})(root,0);
+ return {root,pf,nodes};
+}
+function draw(T,box,st,hl){
+ const W=Math.max(300,T.nodes.length*40+30),D=Math.max(1,...T.nodes.map(n=>n.d+1)),H=D*62+30;
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+ const px=n=>20+n.x*40,py=n=>26+n.d*62;
+ T.nodes.forEach(n=>{[n.l,n.r].forEach(c=>{if(c)s+=`<line x1="${px(n)}" y1="${py(n)}" x2="${px(c)}" y2="${py(c)}" stroke="var(--bd)" stroke-width="2"/>`})});
+ T.nodes.forEach(n=>{
+  let f="var(--card)",sk="var(--mu)",tc="var(--tx)";
+  if(st.good[n.id]){f="var(--ok)";sk=f;tc="#fff"}
+  if(st.bad[n.id]){f="var(--bad)";sk=f;tc="#fff"}
+  if(hl.includes(n.id)){f="var(--hl)";sk=f;tc="#000"}
+  s+=`<circle cx="${px(n)}" cy="${py(n)}" r="16" fill="${f}" stroke="${sk}" stroke-width="2"/><text x="${px(n)}" y="${py(n)+4}" text-anchor="middle" font-size="12" font-weight="600" fill="${tc}">${n.val}</text>`;
+  if(st.labels[n.id]!==undefined)s+=`<text x="${px(n)+18}" y="${py(n)-14}" font-size="11" fill="var(--ac)" font-weight="700">${st.labels[n.id]}</text>`;
+ });
+ box.innerHTML=s+"</svg>";
+}
+function gen(){
+ steps=[];const L={},bd={},gd={};let result="";
+ const snap=(hl,msg)=>steps.push({hl,msg,st:{labels:{...L},bad:{...bd},good:{...gd}}});
+ snap([],"Ready. Press Next to walk through the algorithm.");
+ const R=A.root;
+ if(P==0){const f=n=>{if(!n)return 0;const l=f(n.l),r=f(n.r),v=l+r+1;L[n.id]=v;snap([n.id],`node ${n.val}: ${l} + ${r} + 1 = ${v}`);return v};result="Total nodes = "+f(R)}
+ if(P==1){const f=n=>{if(!n)return 0;if(!n.l&&!n.r){L[n.id]=1;gd[n.id]=1;snap([n.id],`node ${n.val} is a leaf → 1`);return 1}const l=f(n.l),r=f(n.r);L[n.id]=l+r;snap([n.id],`node ${n.val}: ${l} + ${r} = ${l+r}`);return l+r};result="Leaf nodes = "+f(R)}
+ if(P==2){const f=n=>{if(!n)return 0;if(!n.l&&!n.r){L[n.id]=0;snap([n.id],`node ${n.val} is a leaf → 0`);return 0}const l=f(n.l),r=f(n.r),v=1+l+r;L[n.id]=v;gd[n.id]=1;snap([n.id],`node ${n.val} is internal: 1 + ${l} + ${r} = ${v}`);return v};result="Internal nodes = "+f(R)}
+ if(P==3){const f=n=>{if(!n)return 0;const l=f(n.l),r=f(n.r),v=1+Math.max(l,r);L[n.id]=v;snap([n.id],`node ${n.val}: 1 + max(${l}, ${r}) = ${v}`);return v};result="Height = "+f(R)+" (nodes)"}
+ if(P==4){let best=0;const f=n=>{if(!n)return 0;const l=f(n.l),r=f(n.r);if(l+r>best){best=l+r;gd[n.id]=1}const v=1+Math.max(l,r);L[n.id]=v;snap([n.id],`node ${n.val}: l=${l}, r=${r} → path through it = ${l+r}, best = ${best}`);return v};f(R);result="Diameter = "+best+" edges (green = node where best path bends)"}
+ if(P==5){const p=+$("pp").value,q=+$("qq").value;let c=R,out=null;
+  if(!c)result="Empty tree";
+  while(c){if(p<c.val&&q<c.val){snap([c.id],`p=${p}, q=${q} both < ${c.val} → go left`);c=c.l}
+   else if(p>c.val&&q>c.val){snap([c.id],`p=${p}, q=${q} both > ${c.val} → go right`);c=c.r}
+   else{gd[c.id]=1;snap([c.id],`${c.val} splits p and q → this is the LCA`);out=c.val;break}}
+  if(R)result=out===null?"LCA not found (p/q outside tree)":"LCA = "+out}
+ if(P==6){const f=n=>{if(!n)return 0;const l=f(n.l);if(l==-1)return -1;const r=f(n.r);if(r==-1)return -1;
+   if(Math.abs(l-r)>1){bd[n.id]=1;snap([n.id],`node ${n.val}: |${l} − ${r}| > 1 → UNBALANCED, stop`);return -1}
+   const v=1+Math.max(l,r);L[n.id]=v;gd[n.id]=1;snap([n.id],`node ${n.val}: |${l} − ${r}| ≤ 1 ✓ height = ${v}`);return v};
+  result=f(R)==-1?"❌ Not balanced":"✅ Balanced"}
+ if(P==7){const f=(a,b)=>{if(!a&&!b)return true;
+   if(!a||!b){const x=a||b;bd[x.id]=1;snap([x.id],"one side is null, other isn't → different");return false}
+   if(a.val!=b.val){bd[a.id]=bd[b.id]=1;snap([a.id,b.id],`${a.val} ≠ ${b.val} → different`);return false}
+   gd[a.id]=gd[b.id]=1;snap([a.id,b.id],`${a.val} = ${b.val} ✓ compare children`);return f(a.l,b.l)&&f(a.r,b.r)};
+  result=f(R,B.root)?"✅ Identical":"❌ Not identical"}
+ if(P==8){const f=(a,b)=>{if(!a&&!b)return true;
+   if(!a||!b){const x=a||b;bd[x.id]=1;snap([x.id],"mirror position is empty → not symmetric");return false}
+   if(a.val!=b.val){bd[a.id]=bd[b.id]=1;snap([a.id,b.id],`${a.val} ≠ ${b.val} → not mirror`);return false}
+   gd[a.id]=gd[b.id]=1;snap([a.id,b.id],`${a.val} = ${b.val} ✓ next: (a.left,b.right) and (a.right,b.left)`);return f(a.l,b.r)&&f(a.r,b.l)};
+  result=(!R||f(R.l,R.r))?"✅ Symmetric":"❌ Not symmetric"}
+ steps.push({hl:[],msg:"Done.",st:{labels:{...L},bad:{...bd},good:{...gd}},final:result});
+}
+function show(){
+ const s=steps[si];draw(A,$("boxA"),s.st,s.hl);
+ if(P==7)draw(B,$("boxB"),s.st,s.hl);
+ $("msg").textContent=`Step ${si}/${steps.length-1}: `+s.msg;
+ $("res").textContent=s.final||"";
+ $("prev").disabled=si==0;$("next").disabled=si==steps.length-1;
+}
+function load(){stop();A=build($("ta").value,"A");
+ B=P==7?build($("tb").value,"B"):null;
+ gen();si=0;show()}
+function stop(){clearInterval(timer);timer=null;$("play").textContent="▶ Play"}
+function setP(i){
+ P=i;stop();const d=PR[i];$("ttl").textContent=d.t;$("cx").textContent=d.c;
+ $("code").textContent=(i==5||i<9?"":"")+(i==0||true?NODE:"")+d.code;
+ [...document.querySelectorAll(".tab")].forEach((t,k)=>t.classList.toggle("on",k==i));
+ let ex="";
+ if(i==5)ex=`<div class="row"><label style="margin:0">p =</label><input type="number" id="pp" value="2"><label style="margin:0">q =</label><input type="number" id="qq" value="4"></div>`;
+ if(i==7)ex=`<label>Tree B</label><input type="text" id="tb" value="6,2,8,0,4,7,9,null,null,3,5"><div class="row"><button id="same">B = copy of A</button><button id="diff">Change one value</button></div>`;
+ $("extra").innerHTML=ex;$("boxB").style.display=i==7?"block":"none";
+ const keys=i==8?["sym","asym"]:i==6?["trap","bal","skew","bst"]:["bst","bal","skew","sym"];
+ $("pre").innerHTML=keys.map(k=>`<button data-k="${k}">${PRE[k][0]}</button>`).join("");
+ $("pre").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("ta").value=PRE[b.dataset.k][1];load()});
+ if(i==8)$("ta").value=PRE.sym[1];else if(i==6)$("ta").value=PRE.trap[1];else if(i!=5)$("ta").value=PRE.bst[1];else $("ta").value=PRE.bst[1];
+ if(i==7){$("same").onclick=()=>{$("tb").value=$("ta").value;load()};
+  $("diff").onclick=()=>{const t=$("ta").value.split(",");const k=t.findIndex(x=>/^\d+$/.test(x.trim()));if(k>=0)t[t.length-1]=(+t[t.length-1]+1)||1;$("tb").value=t.join(",");load()}}
+ ["pp","qq","tb"].forEach(id=>{const e=$(id);if(e)e.oninput=()=>{}});
+ load();
+}
+$("tabs").innerHTML=PR.map((p,i)=>`<button class="tab" onclick="setP(${i})">${p.t.split(". ")[0]}. ${p.t.split(". ")[1].replace(/ in a Binary Tree| of a Binary Tree|Binary Tree |Check if /,"").slice(0,22)}</button>`).join("");
+$("load").onclick=load;
+$("next").onclick=()=>{if(si<steps.length-1){si++;show()}};
+$("prev").onclick=()=>{if(si>0){si--;show()}};
+$("play").onclick=()=>{if(timer){stop();return}
+ if(si>=steps.length-1){si=0;show()}
+ $("play").textContent="⏸ Pause";
+ timer=setInterval(()=>{if(si<steps.length-1){si++;show()}else stop()},750)};
+$("cp").onclick=async()=>{try{await navigator.clipboard.writeText($("code").textContent);$("cp").textContent="Copied ✓"}catch(e){$("cp").textContent="Select & copy"}setTimeout(()=>$("cp").textContent="Copy",1500)};
+setP(0);
+</script></body></html>
